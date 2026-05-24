@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks Condition="'$(ChronosixTargetFrameworks)' != ''">$(ChronosixTargetFrameworks)</TargetFrameworks>
+    <TargetFrameworks Condition="'$(ChronosixTargetFrameworks)' == ''">net8.0;net9.0;net10.0</TargetFrameworks>
+
+    <PackageId>Chronosix.Quartz</PackageId>
+    <Title>Chronosix Quartz.NET Adapter</Title>
+    <Description>Surfaces Quartz.NET jobs on the Chronosix dashboard — executions appear on the live timeline and worker-loop exceptions feed the failure tracer. Targets Quartz.NET 3.x.</Description>
+    <PackageTags>chronosix;quartz;quartz.net;scheduler;dashboard;diagnostics</PackageTags>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Quartz" Version="3.13.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/Chronosix/Chronosix.csproj" />
+  </ItemGroup>
+
+</Project>

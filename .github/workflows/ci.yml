@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build & verify
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Restore
+        run: dotnet restore Chronosix.sln
+
+      - name: Build (Release, all target frameworks)
+        run: dotnet build Chronosix.sln --configuration Release --no-restore
+
+      - name: Pack (verify packability)
+        run: |
+          dotnet pack src/Chronosix/Chronosix.csproj --configuration Release --no-build --output ./artifacts
+          dotnet pack adapters/Chronosix.Quartz/Chronosix.Quartz.csproj --configuration Release --no-build --output ./artifacts
+          dotnet pack adapters/Chronosix.Hangfire/Chronosix.Hangfire.csproj --configuration Release --no-build --output ./artifacts
+
+      - name: Upload package artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages
+          path: ./artifacts/*.nupkg
+          if-no-files-found: error

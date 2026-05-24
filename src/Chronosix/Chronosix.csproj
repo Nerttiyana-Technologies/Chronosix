@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <!--
+      Ships multi-targeted by default. The TFM set can be overridden on the
+      command line (e.g. for CI on an older SDK) with:
+          dotnet build -p:ChronosixTargetFrameworks=net8.0
+    -->
+    <TargetFrameworks Condition="'$(ChronosixTargetFrameworks)' != ''">$(ChronosixTargetFrameworks)</TargetFrameworks>
+    <TargetFrameworks Condition="'$(ChronosixTargetFrameworks)' == ''">net8.0;net9.0;net10.0</TargetFrameworks>
+
+    <PackageId>Chronosix</PackageId>
+    <Title>Chronosix - In-Process Scheduled Task Dashboard</Title>
+    <Description>An embedded, zero-database dashboard for ASP.NET Core background jobs and schedulers. Mounts at /chronosix, visualises executions on a live Gantt timeline, captures worker-loop exceptions, and lets developers fire any job on demand.</Description>
+    <PackageTags>background-jobs;scheduler;cron;dashboard;diagnostics;signalr;hangfire;quartz;hosted-service</PackageTags>
+    <IsPackable>true</IsPackable>
+
+    <!-- This is a Razor Class Library that carries Razor Pages. -->
+    <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+    <StaticWebAssetBasePath>_content/Chronosix</StaticWebAssetBasePath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+</Project>

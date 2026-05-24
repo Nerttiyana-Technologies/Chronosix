@@ -1,0 +1,24 @@
+<Project>
+
+  <!--
+    Shared MSBuild settings for every project in the Chronosix repository.
+    Per-project files only need to declare what is unique to them.
+  -->
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- CS1591: missing XML doc comment - too noisy for views / samples. -->
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <Authors>Suresh Subramanian</Authors>
+    <Company>Chronosix</Company>
+    <Product>Chronosix</Product>
+    <Copyright>Copyright (c) 2026 Suresh Subramanian</Copyright>
+    <Version>0.1.0</Version>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/sureshsubramanian/Chronosix</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/sureshsubramanian/Chronosix</PackageProjectUrl>
+  </PropertyGroup>
+
+</Project>

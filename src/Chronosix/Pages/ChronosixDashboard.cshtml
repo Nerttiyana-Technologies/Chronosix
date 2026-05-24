@@ -1,0 +1,870 @@
+@page "/chronosix"
+@model Chronosix.Pages.ChronosixDashboardModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en" data-theme="@Model.DefaultTheme">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>@Model.DashboardTitle</title>
+    <style>
+        :root {
+            --cx-radius: 12px;
+            --cx-radius-sm: 8px;
+            --cx-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --cx-mono: "SF Mono", "JetBrains Mono", "Cascadia Code", Consolas, Menlo, monospace;
+        }
+
+        html[data-theme="dark"] {
+            --cx-bg: #0b0d12;
+            --cx-bg-grad: radial-gradient(1200px 600px at 80% -10%, #161b2b 0%, #0b0d12 60%);
+            --cx-surface: #14171f;
+            --cx-surface-2: #1a1e29;
+            --cx-surface-3: #20242f;
+            --cx-border: #272c39;
+            --cx-border-soft: #1f2430;
+            --cx-text: #e7e9f0;
+            --cx-text-muted: #8b92a6;
+            --cx-text-faint: #5b6275;
+            --cx-accent: #818cf8;
+            --cx-accent-strong: #6366f1;
+            --cx-success: #34d399;
+            --cx-danger: #f87171;
+            --cx-warning: #fbbf24;
+            --cx-running: #60a5fa;
+            --cx-shadow: 0 14px 40px -18px rgba(0, 0, 0, 0.8);
+        }
+
+        html[data-theme="light"] {
+            --cx-bg: #f5f6f8;
+            --cx-bg-grad: radial-gradient(1200px 600px at 80% -10%, #eef0fb 0%, #f5f6f8 60%);
+            --cx-surface: #ffffff;
+            --cx-surface-2: #f7f8fa;
+            --cx-surface-3: #eef0f3;
+            --cx-border: #e3e6ec;
+            --cx-border-soft: #edeff3;
+            --cx-text: #1b1f2a;
+            --cx-text-muted: #5d6473;
+            --cx-text-faint: #969cab;
+            --cx-accent: #4f46e5;
+            --cx-accent-strong: #4338ca;
+            --cx-success: #059669;
+            --cx-danger: #dc2626;
+            --cx-warning: #d97706;
+            --cx-running: #2563eb;
+            --cx-shadow: 0 14px 40px -22px rgba(20, 25, 50, 0.28);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: var(--cx-font);
+            background: var(--cx-bg);
+            background-image: var(--cx-bg-grad);
+            background-attachment: fixed;
+            color: var(--cx-text);
+            -webkit-font-smoothing: antialiased;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .cx-app { max-width: 1480px; margin: 0 auto; padding: 26px 30px 60px; }
+
+        /* ---------- header ---------- */
+        .cx-header {
+            display: flex; align-items: center; gap: 18px;
+            padding-bottom: 22px; margin-bottom: 24px;
+            border-bottom: 1px solid var(--cx-border);
+        }
+        .cx-brand { display: flex; align-items: center; gap: 13px; }
+        .cx-logo {
+            width: 42px; height: 42px; border-radius: 11px;
+            background: linear-gradient(140deg, var(--cx-accent), var(--cx-accent-strong));
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 8px 22px -8px var(--cx-accent-strong);
+        }
+        .cx-brand h1 { margin: 0; font-size: 19px; font-weight: 650; letter-spacing: -0.2px; }
+        .cx-brand .cx-sub { font-size: 12px; color: var(--cx-text-muted); margin-top: 1px; }
+        .cx-header-spacer { flex: 1; }
+        .cx-badge {
+            font-size: 11px; font-weight: 600; letter-spacing: 0.4px; text-transform: uppercase;
+            padding: 5px 10px; border-radius: 999px;
+            background: var(--cx-surface-3); color: var(--cx-text-muted);
+            border: 1px solid var(--cx-border);
+        }
+        .cx-conn { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--cx-text-muted); }
+        .cx-conn-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--cx-text-faint); }
+        .cx-conn.live .cx-conn-dot { background: var(--cx-success); box-shadow: 0 0 0 4px color-mix(in srgb, var(--cx-success) 22%, transparent); }
+        .cx-conn.poll .cx-conn-dot { background: var(--cx-warning); }
+        .cx-conn.down .cx-conn-dot { background: var(--cx-danger); }
+
+        .cx-iconbtn {
+            width: 38px; height: 38px; border-radius: 10px;
+            border: 1px solid var(--cx-border); background: var(--cx-surface);
+            color: var(--cx-text-muted); cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.15s ease;
+        }
+        .cx-iconbtn:hover { color: var(--cx-text); border-color: var(--cx-accent); transform: translateY(-1px); }
+
+        /* ---------- stat cards ---------- */
+        .cx-stats {
+            display: grid; grid-template-columns: repeat(5, 1fr);
+            gap: 14px; margin-bottom: 22px;
+        }
+        .cx-stat {
+            background: var(--cx-surface); border: 1px solid var(--cx-border);
+            border-radius: var(--cx-radius); padding: 16px 18px;
+            box-shadow: var(--cx-shadow);
+        }
+        .cx-stat-label {
+            font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px;
+            color: var(--cx-text-muted); font-weight: 600;
+        }
+        .cx-stat-value { font-size: 28px; font-weight: 680; margin-top: 7px; letter-spacing: -0.5px; }
+        .cx-stat-foot { font-size: 12px; color: var(--cx-text-faint); margin-top: 3px; }
+        .cx-stat-value.ok { color: var(--cx-success); }
+        .cx-stat-value.bad { color: var(--cx-danger); }
+        .cx-stat-value.run { color: var(--cx-running); }
+
+        /* ---------- panels ---------- */
+        .cx-grid { display: grid; grid-template-columns: 1fr; gap: 18px; }
+        .cx-row-2 { display: grid; grid-template-columns: 1.45fr 1fr; gap: 18px; }
+        .cx-panel {
+            background: var(--cx-surface); border: 1px solid var(--cx-border);
+            border-radius: var(--cx-radius); box-shadow: var(--cx-shadow); overflow: hidden;
+        }
+        .cx-panel-head {
+            display: flex; align-items: center; gap: 10px;
+            padding: 15px 18px; border-bottom: 1px solid var(--cx-border);
+        }
+        .cx-panel-head h2 { margin: 0; font-size: 14px; font-weight: 640; letter-spacing: -0.1px; }
+        .cx-panel-head .cx-count {
+            font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px;
+            background: var(--cx-surface-3); color: var(--cx-text-muted);
+        }
+        .cx-panel-head .cx-spacer { flex: 1; }
+        .cx-panel-body { padding: 8px 10px 12px; }
+
+        /* ---------- timeline ---------- */
+        .cx-tl-axis {
+            position: relative; height: 22px; margin: 4px 0 2px;
+            border-bottom: 1px dashed var(--cx-border);
+        }
+        .cx-tl-tick {
+            position: absolute; top: 2px; transform: translateX(-50%);
+            font-size: 10.5px; color: var(--cx-text-faint); font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+        .cx-tl-rows { position: relative; padding: 6px 0 2px; }
+        .cx-tl-now {
+            position: absolute; top: 0; bottom: 0; width: 2px;
+            background: linear-gradient(var(--cx-accent), transparent);
+            z-index: 3; pointer-events: none;
+        }
+        .cx-tl-now .cx-tl-nowlabel {
+            position: absolute; top: -2px; left: 4px; font-size: 9.5px;
+            color: var(--cx-accent); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .cx-tl-row { padding: 5px 0 9px; border-bottom: 1px solid var(--cx-border-soft); }
+        .cx-tl-row:last-child { border-bottom: none; }
+        .cx-tl-rowlabel {
+            display: flex; align-items: center; gap: 7px;
+            font-size: 12px; font-weight: 560; margin-bottom: 5px;
+        }
+        .cx-tl-rowlabel .cx-muted { color: var(--cx-text-faint); font-weight: 400; font-size: 11px; }
+        .cx-tl-track { position: relative; width: 100%; min-height: 18px; }
+        .cx-bar {
+            position: absolute; height: 15px; border-radius: 4px; cursor: pointer;
+            min-width: 3px; transition: filter 0.12s ease, transform 0.12s ease;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .cx-bar:hover { filter: brightness(1.18); transform: scaleY(1.18); z-index: 4; }
+        .cx-bar--succeeded { background: color-mix(in srgb, var(--cx-success) 78%, transparent); }
+        .cx-bar--failed { background: color-mix(in srgb, var(--cx-danger) 82%, transparent); }
+        .cx-bar--cancelled { background: color-mix(in srgb, var(--cx-text-faint) 70%, transparent); }
+        .cx-bar--skipped {
+            background: repeating-linear-gradient(45deg, color-mix(in srgb, var(--cx-warning) 70%, transparent) 0 5px, transparent 5px 10px);
+            border-color: var(--cx-warning);
+        }
+        .cx-bar--running {
+            background: color-mix(in srgb, var(--cx-running) 80%, transparent);
+            animation: cx-pulse 1.4s ease-in-out infinite;
+        }
+        @@keyframes cx-pulse {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.45); }
+        }
+        .cx-tl-empty { height: 15px; border-radius: 4px; background: var(--cx-surface-2); width: 100%; }
+
+        /* ---------- job list ---------- */
+        .cx-job {
+            display: grid; grid-template-columns: 1fr auto;
+            gap: 10px; padding: 13px 14px; border-radius: var(--cx-radius-sm);
+            border: 1px solid transparent;
+        }
+        .cx-job:hover { background: var(--cx-surface-2); border-color: var(--cx-border-soft); }
+        .cx-job + .cx-job { margin-top: 2px; }
+        .cx-job-main { min-width: 0; }
+        .cx-job-title { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13.5px; }
+        .cx-job-title .cx-kind {
+            font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;
+            color: var(--cx-text-muted); background: var(--cx-surface-3);
+            padding: 2px 6px; border-radius: 5px;
+        }
+        .cx-job-meta {
+            display: flex; flex-wrap: wrap; gap: 14px; margin-top: 6px;
+            font-size: 11.5px; color: var(--cx-text-muted);
+        }
+        .cx-job-meta b { color: var(--cx-text); font-weight: 600; }
+        .cx-job-actions { display: flex; align-items: center; gap: 8px; }
+
+        .cx-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; background: var(--cx-text-faint); }
+        .cx-dot--succeeded { background: var(--cx-success); }
+        .cx-dot--failed { background: var(--cx-danger); }
+        .cx-dot--running { background: var(--cx-running); animation: cx-pulse 1.4s infinite; }
+        .cx-dot--cancelled { background: var(--cx-text-faint); }
+        .cx-dot--skipped { background: var(--cx-warning); }
+        .cx-dot--idle { background: var(--cx-text-faint); }
+
+        .cx-btn {
+            font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer;
+            padding: 7px 12px; border-radius: 8px; border: 1px solid var(--cx-border);
+            background: var(--cx-surface); color: var(--cx-text);
+            display: inline-flex; align-items: center; gap: 6px; transition: all 0.14s ease;
+            white-space: nowrap;
+        }
+        .cx-btn:hover { border-color: var(--cx-accent); color: var(--cx-accent); }
+        .cx-btn--primary {
+            background: linear-gradient(135deg, var(--cx-accent), var(--cx-accent-strong));
+            color: #fff; border-color: transparent;
+        }
+        .cx-btn--primary:hover { color: #fff; filter: brightness(1.08); }
+        .cx-btn--ghost { background: transparent; }
+        .cx-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+        .cx-btn--sm { padding: 5px 9px; font-size: 11px; }
+
+        .cx-switch { display: inline-flex; align-items: center; cursor: pointer; }
+        .cx-switch input { display: none; }
+        .cx-switch-track {
+            width: 36px; height: 20px; border-radius: 999px;
+            background: var(--cx-surface-3); border: 1px solid var(--cx-border);
+            position: relative; transition: background 0.15s ease;
+        }
+        .cx-switch-track::after {
+            content: ""; position: absolute; top: 2px; left: 2px;
+            width: 14px; height: 14px; border-radius: 50%; background: var(--cx-text-faint);
+            transition: transform 0.15s ease, background 0.15s ease;
+        }
+        .cx-switch input:checked + .cx-switch-track { background: color-mix(in srgb, var(--cx-success) 35%, transparent); }
+        .cx-switch input:checked + .cx-switch-track::after { transform: translateX(16px); background: var(--cx-success); }
+
+        /* ---------- failures ---------- */
+        .cx-fail {
+            border: 1px solid var(--cx-border); border-left: 3px solid var(--cx-danger);
+            border-radius: var(--cx-radius-sm); padding: 12px 13px; margin: 6px 4px;
+            background: var(--cx-surface-2);
+        }
+        .cx-fail.ack { border-left-color: var(--cx-text-faint); opacity: 0.62; }
+        .cx-fail-top { display: flex; align-items: baseline; gap: 8px; }
+        .cx-fail-type { font-weight: 650; font-size: 13px; color: var(--cx-danger); }
+        .cx-fail.ack .cx-fail-type { color: var(--cx-text-muted); }
+        .cx-fail-time { margin-left: auto; font-size: 11px; color: var(--cx-text-faint); white-space: nowrap; }
+        .cx-fail-msg { font-size: 12.5px; margin: 5px 0 7px; word-break: break-word; }
+        .cx-fail-meta { font-size: 11px; color: var(--cx-text-muted); display: flex; gap: 12px; flex-wrap: wrap; }
+        .cx-fail-detail {
+            margin-top: 9px; padding: 10px; border-radius: 6px;
+            background: var(--cx-bg); border: 1px solid var(--cx-border);
+            font-family: var(--cx-mono); font-size: 10.5px; white-space: pre-wrap;
+            max-height: 220px; overflow: auto; color: var(--cx-text-muted); display: none;
+        }
+        .cx-fail-detail.open { display: block; }
+        .cx-fail-actions { display: flex; gap: 8px; margin-top: 9px; }
+
+        .cx-empty {
+            text-align: center; padding: 36px 20px; color: var(--cx-text-faint); font-size: 13px;
+        }
+
+        /* ---------- drawer ---------- */
+        .cx-drawer {
+            position: fixed; top: 0; right: 0; bottom: 0; width: 440px; max-width: 92vw;
+            background: var(--cx-surface); border-left: 1px solid var(--cx-border);
+            box-shadow: -20px 0 50px -25px rgba(0, 0, 0, 0.6);
+            transform: translateX(100%); transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 50; display: flex; flex-direction: column;
+        }
+        .cx-drawer.open { transform: translateX(0); }
+        .cx-drawer-head {
+            display: flex; align-items: center; gap: 10px;
+            padding: 17px 18px; border-bottom: 1px solid var(--cx-border);
+        }
+        .cx-drawer-head h3 { margin: 0; font-size: 14px; font-weight: 640; }
+        .cx-drawer-body { padding: 16px 18px; overflow: auto; }
+        .cx-kv { display: grid; grid-template-columns: 110px 1fr; gap: 6px 12px; font-size: 12.5px; }
+        .cx-kv dt { color: var(--cx-text-muted); }
+        .cx-kv dd { margin: 0; font-weight: 560; }
+        .cx-log {
+            margin-top: 14px; padding: 12px; border-radius: 8px;
+            background: var(--cx-bg); border: 1px solid var(--cx-border);
+            font-family: var(--cx-mono); font-size: 11px; white-space: pre-wrap;
+            max-height: 50vh; overflow: auto; color: var(--cx-text-muted);
+        }
+        .cx-pill {
+            font-size: 11px; font-weight: 650; padding: 3px 9px; border-radius: 999px;
+            text-transform: capitalize;
+        }
+        .cx-pill--succeeded { background: color-mix(in srgb, var(--cx-success) 20%, transparent); color: var(--cx-success); }
+        .cx-pill--failed { background: color-mix(in srgb, var(--cx-danger) 20%, transparent); color: var(--cx-danger); }
+        .cx-pill--running { background: color-mix(in srgb, var(--cx-running) 20%, transparent); color: var(--cx-running); }
+        .cx-pill--cancelled { background: var(--cx-surface-3); color: var(--cx-text-muted); }
+        .cx-pill--skipped { background: color-mix(in srgb, var(--cx-warning) 20%, transparent); color: var(--cx-warning); }
+
+        .cx-scrim {
+            position: fixed; inset: 0; background: rgba(0, 0, 0, 0.4);
+            opacity: 0; pointer-events: none; transition: opacity 0.2s ease; z-index: 40;
+        }
+        .cx-scrim.open { opacity: 1; pointer-events: auto; }
+
+        /* ---------- toast ---------- */
+        .cx-toast-host {
+            position: fixed; bottom: 22px; right: 22px; z-index: 60;
+            display: flex; flex-direction: column; gap: 8px;
+        }
+        .cx-toast {
+            background: var(--cx-surface); border: 1px solid var(--cx-border);
+            border-left: 3px solid var(--cx-accent);
+            border-radius: 9px; padding: 11px 15px; font-size: 12.5px; font-weight: 540;
+            box-shadow: var(--cx-shadow); min-width: 220px;
+            animation: cx-slide-in 0.2s ease;
+        }
+        .cx-toast.ok { border-left-color: var(--cx-success); }
+        .cx-toast.bad { border-left-color: var(--cx-danger); }
+        @@keyframes cx-slide-in {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .cx-foot {
+            margin-top: 26px; padding-top: 16px; border-top: 1px solid var(--cx-border);
+            font-size: 11.5px; color: var(--cx-text-faint);
+            display: flex; gap: 14px; flex-wrap: wrap;
+        }
+
+        @@media (max-width: 1080px) {
+            .cx-stats { grid-template-columns: repeat(2, 1fr); }
+            .cx-row-2 { grid-template-columns: 1fr; }
+            .cx-app { padding: 20px 16px 50px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="cx-app">
+        <header class="cx-header">
+            <div class="cx-brand">
+                <div class="cx-logo">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round">
+                        <circle cx="12" cy="12" r="9" opacity="0.55"></circle>
+                        <path d="M12 7v5l3.5 2"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1>@Model.DashboardTitle</h1>
+                    <div class="cx-sub">In-process scheduled task &amp; background worker dashboard</div>
+                </div>
+            </div>
+            <div class="cx-header-spacer"></div>
+            <span class="cx-badge" id="cx-env">&mdash;</span>
+            <div class="cx-conn down" id="cx-conn"><span class="cx-conn-dot"></span><span id="cx-conn-text">connecting</span></div>
+            <button class="cx-iconbtn" id="cx-refresh" title="Refresh">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12a9 9 0 1 1-2.6-6.4"></path><path d="M21 3v6h-6"></path>
+                </svg>
+            </button>
+            <button class="cx-iconbtn" id="cx-theme" title="Toggle theme">
+                <svg id="cx-theme-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"></path>
+                </svg>
+            </button>
+        </header>
+
+        <section class="cx-stats" id="cx-stats"></section>
+
+        <div class="cx-grid">
+            <section class="cx-panel">
+                <div class="cx-panel-head">
+                    <h2>Execution Timeline</h2>
+                    <span class="cx-count" id="cx-tl-count">0</span>
+                    <span class="cx-spacer"></span>
+                    <span style="font-size:11px;color:var(--cx-text-faint)">live &middot; Gantt view of recent runs</span>
+                </div>
+                <div class="cx-panel-body" id="cx-timeline"></div>
+            </section>
+
+            <div class="cx-row-2">
+                <section class="cx-panel">
+                    <div class="cx-panel-head">
+                        <h2>Jobs</h2>
+                        <span class="cx-count" id="cx-jobs-count">0</span>
+                    </div>
+                    <div class="cx-panel-body" id="cx-jobs"></div>
+                </section>
+
+                <section class="cx-panel">
+                    <div class="cx-panel-head">
+                        <h2>Failure Tracer</h2>
+                        <span class="cx-count" id="cx-fail-count">0</span>
+                        <span class="cx-spacer"></span>
+                        <button class="cx-btn cx-btn--ghost cx-btn--sm" id="cx-fail-clear">Clear all</button>
+                    </div>
+                    <div class="cx-panel-body" id="cx-failures"></div>
+                </section>
+            </div>
+        </div>
+
+        <div class="cx-foot">
+            <span>Chronosix v<span id="cx-version">0.1.0</span></span>
+            <span>Server time: <span id="cx-servertime">&mdash;</span></span>
+            <span>Process: <span id="cx-process">&mdash;</span></span>
+        </div>
+    </div>
+
+    <div class="cx-scrim" id="cx-scrim"></div>
+    <aside class="cx-drawer" id="cx-drawer" aria-hidden="true">
+        <div class="cx-drawer-head">
+            <h3 id="cx-drawer-title">Execution</h3>
+            <span class="cx-spacer" style="flex:1"></span>
+            <button class="cx-iconbtn" id="cx-drawer-close" title="Close">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+                    <path d="M6 6l12 12M18 6L6 18"></path>
+                </svg>
+            </button>
+        </div>
+        <div class="cx-drawer-body" id="cx-drawer-body"></div>
+    </aside>
+
+    <div class="cx-toast-host" id="cx-toast-host"></div>
+
+    <script>window.__CHRONOSIX__ = @Html.Raw(Model.SnapshotJson);</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"
+            onerror="window.__cxSignalRMissing=true"></script>
+    <script>
+        (function () {
+            "use strict";
+
+            var MAX_EXEC = 280;
+            var state = { jobs: {}, executions: [], failures: [], stats: {}, meta: {} };
+
+            // ---------- bootstrap from server-rendered snapshot ----------
+            ingestSnapshot(window.__CHRONOSIX__ || {});
+
+            // ---------- theme ----------
+            var THEME_KEY = "chronosix-theme";
+            (function () {
+                var saved = null;
+                try { saved = localStorage.getItem(THEME_KEY); } catch (e) { }
+                if (saved === "dark" || saved === "light") {
+                    document.documentElement.setAttribute("data-theme", saved);
+                }
+                updateThemeIcon();
+            })();
+            document.getElementById("cx-theme").addEventListener("click", function () {
+                var next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+                document.documentElement.setAttribute("data-theme", next);
+                try { localStorage.setItem(THEME_KEY, next); } catch (e) { }
+                updateThemeIcon();
+            });
+            function updateThemeIcon() {
+                var dark = document.documentElement.getAttribute("data-theme") === "dark";
+                document.getElementById("cx-theme-icon").innerHTML = dark
+                    ? '<path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"></path>'
+                    : '<circle cx="12" cy="12" r="4.5"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"></path>';
+            }
+
+            // ---------- helpers ----------
+            function esc(s) {
+                return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+                    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+                });
+            }
+            function lower(s) { return String(s || "").toLowerCase(); }
+            function fmtDuration(ms) {
+                if (ms == null || isNaN(ms)) return "&mdash;";
+                if (ms < 1000) return Math.round(ms) + " ms";
+                if (ms < 60000) return (ms / 1000).toFixed(ms < 10000 ? 2 : 1) + " s";
+                var m = Math.floor(ms / 60000), s = Math.round((ms % 60000) / 1000);
+                return m + "m " + s + "s";
+            }
+            function fmtClock(t) {
+                var d = new Date(t);
+                return String(d.getHours()).padStart(2, "0") + ":" +
+                    String(d.getMinutes()).padStart(2, "0") + ":" +
+                    String(d.getSeconds()).padStart(2, "0");
+            }
+            function fmtRelative(iso) {
+                if (!iso) return "never";
+                var diff = Date.now() - Date.parse(iso);
+                if (diff < 0) {
+                    var fwd = -diff;
+                    if (fwd < 60000) return "in " + Math.round(fwd / 1000) + "s";
+                    if (fwd < 3600000) return "in " + Math.round(fwd / 60000) + "m";
+                    return "in " + Math.round(fwd / 3600000) + "h";
+                }
+                if (diff < 10000) return "just now";
+                if (diff < 60000) return Math.round(diff / 1000) + "s ago";
+                if (diff < 3600000) return Math.round(diff / 60000) + "m ago";
+                if (diff < 86400000) return Math.round(diff / 3600000) + "h ago";
+                return Math.round(diff / 86400000) + "d ago";
+            }
+
+            // ---------- snapshot ingest ----------
+            function ingestSnapshot(snap) {
+                state.jobs = {};
+                (snap.jobs || []).forEach(function (j) { state.jobs[j.id] = j; });
+                state.executions = (snap.executions || []).slice(0, MAX_EXEC);
+                state.failures = snap.failures || [];
+                state.stats = snap.stats || {};
+                state.meta = {
+                    serverTime: snap.serverTimeUtc,
+                    environment: snap.environment,
+                    process: snap.processName,
+                    version: snap.version
+                };
+            }
+            function upsertExecution(exec) {
+                var idx = state.executions.findIndex(function (e) { return e.id === exec.id; });
+                if (idx >= 0) { state.executions[idx] = exec; }
+                else { state.executions.unshift(exec); state.executions = state.executions.slice(0, MAX_EXEC); }
+            }
+
+            // ---------- rendering ----------
+            function renderAll() { renderMeta(); renderStats(); renderTimeline(); renderJobs(); renderFailures(); }
+
+            function renderMeta() {
+                document.getElementById("cx-env").textContent = state.meta.environment || "unknown";
+                document.getElementById("cx-version").textContent = state.meta.version || "0.1.0";
+                document.getElementById("cx-process").textContent = state.meta.process || "—";
+            }
+
+            function renderStats() {
+                var s = state.stats || {};
+                var total = s.totalRuns || 0, fails = s.totalFailures || 0;
+                var rate = total > 0 ? Math.round(((total - fails) / total) * 100) : 100;
+                var cards = [
+                    { label: "Jobs", value: s.jobCount || 0, foot: "registered" },
+                    { label: "Active runs", value: s.activeRuns || 0, foot: "in flight now", cls: (s.activeRuns > 0 ? "run" : "") },
+                    { label: "Total runs", value: total, foot: "since startup" },
+                    { label: "Success rate", value: rate + "%", foot: (total - fails) + " ok / " + fails + " failed", cls: (rate >= 95 ? "ok" : rate >= 80 ? "" : "bad") },
+                    { label: "Failures", value: s.unacknowledgedFailures || 0, foot: "unacknowledged", cls: ((s.unacknowledgedFailures || 0) > 0 ? "bad" : "ok") }
+                ];
+                document.getElementById("cx-stats").innerHTML = cards.map(function (c) {
+                    return '<div class="cx-stat"><div class="cx-stat-label">' + esc(c.label) + '</div>' +
+                        '<div class="cx-stat-value ' + (c.cls || "") + '">' + esc(c.value) + '</div>' +
+                        '<div class="cx-stat-foot">' + esc(c.foot) + '</div></div>';
+                }).join("");
+            }
+
+            function renderTimeline() {
+                var host = document.getElementById("cx-timeline");
+                var jobs = Object.values(state.jobs).sort(function (a, b) { return a.name.localeCompare(b.name); });
+                var execs = state.executions;
+                var now = Date.now();
+
+                document.getElementById("cx-tl-count").textContent = execs.length;
+
+                var earliest = now - 5 * 60 * 1000;
+                execs.forEach(function (e) {
+                    var t = Date.parse(e.startedAtUtc);
+                    if (t < earliest) earliest = t;
+                });
+                earliest = Math.max(earliest, now - 60 * 60 * 1000);
+                var span = now - earliest;
+                if (span < 60000) span = 60000;
+                var winStart = now - span;
+                var winEnd = now + span * 0.03;
+                var totalSpan = winEnd - winStart;
+                var pct = function (t) { return ((t - winStart) / totalSpan) * 100; };
+
+                var ticks = "";
+                for (var i = 0; i <= 6; i++) {
+                    var tt = winStart + (span / 6) * i;
+                    ticks += '<span class="cx-tl-tick" style="left:' + pct(tt).toFixed(2) + '%">' + fmtClock(tt) + '</span>';
+                }
+
+                if (jobs.length === 0) {
+                    host.innerHTML = '<div class="cx-empty">No jobs registered yet. Add one with <code>AddChronosixJob</code> or <code>AddChronosixWorker</code>.</div>';
+                    return;
+                }
+
+                var rows = jobs.map(function (job) {
+                    var je = execs.filter(function (e) { return e.jobId === job.id; }).map(function (e) {
+                        return {
+                            id: e.id, status: e.status,
+                            s: Date.parse(e.startedAtUtc),
+                            e: e.finishedAtUtc ? Date.parse(e.finishedAtUtc) : now,
+                            durationMs: e.durationMs, trigger: e.trigger
+                        };
+                    }).filter(function (e) { return e.e >= winStart; }).sort(function (a, b) { return a.s - b.s; });
+
+                    var lanes = [];
+                    je.forEach(function (e) {
+                        var placed = false;
+                        for (var li = 0; li < lanes.length; li++) {
+                            if (lanes[li] <= e.s) { e.lane = li; lanes[li] = Math.max(e.e, e.s + 1); placed = true; break; }
+                        }
+                        if (!placed) { e.lane = lanes.length; lanes.push(Math.max(e.e, e.s + 1)); }
+                    });
+                    var laneCount = Math.max(1, lanes.length);
+
+                    var bars = je.map(function (e) {
+                        var left = Math.max(0, pct(Math.max(e.s, winStart)));
+                        var right = Math.min(100, pct(Math.min(e.e, winEnd)));
+                        var width = Math.max(0.5, right - left);
+                        var title = job.name + " · " + e.status + " · " + fmtDuration(e.durationMs).replace("&mdash;", "running");
+                        return '<div class="cx-bar cx-bar--' + lower(e.status) + '" data-exec="' + esc(e.id) +
+                            '" title="' + esc(title) + '" style="left:' + left.toFixed(2) + '%;width:' + width.toFixed(2) +
+                            '%;top:' + (e.lane * 20) + 'px"></div>';
+                    }).join("");
+
+                    return '<div class="cx-tl-row">' +
+                        '<div class="cx-tl-rowlabel"><span class="cx-dot cx-dot--' + lower(job.lastStatus || "idle") + '"></span>' +
+                        esc(job.name) + ' <span class="cx-muted">' + je.length + ' run' + (je.length === 1 ? "" : "s") + '</span></div>' +
+                        '<div class="cx-tl-track" style="height:' + (laneCount * 20) + 'px">' +
+                        (bars || '<div class="cx-tl-empty"></div>') + '</div></div>';
+                }).join("");
+
+                host.innerHTML = '<div class="cx-tl-axis">' + ticks + '</div>' +
+                    '<div class="cx-tl-rows"><div class="cx-tl-now" style="left:' + pct(now).toFixed(2) +
+                    '%"><span class="cx-tl-nowlabel">now</span></div>' + rows + '</div>';
+
+                host.querySelectorAll(".cx-bar").forEach(function (b) {
+                    b.addEventListener("click", function () { openExecution(b.dataset.exec); });
+                });
+            }
+
+            function renderJobs() {
+                var jobs = Object.values(state.jobs).sort(function (a, b) { return a.name.localeCompare(b.name); });
+                document.getElementById("cx-jobs-count").textContent = jobs.length;
+                var host = document.getElementById("cx-jobs");
+                if (jobs.length === 0) { host.innerHTML = '<div class="cx-empty">No jobs registered.</div>'; return; }
+
+                host.innerHTML = jobs.map(function (j) {
+                    var kindLabel = ({
+                        ScheduledJob: "cron job", BackgroundWorker: "worker",
+                        QuartzJob: "quartz", HangfireJob: "hangfire"
+                    })[j.kind] || j.kind;
+                    var nextRun = j.enabled ? (j.nextRunUtc ? fmtRelative(j.nextRunUtc) : "—") : "disabled";
+                    var trigBtn = j.supportsManualTrigger
+                        ? '<button class="cx-btn cx-btn--primary cx-btn--sm" data-trigger="' + esc(j.id) + '">Trigger&nbsp;Now</button>'
+                        : '';
+                    return '<div class="cx-job">' +
+                        '<div class="cx-job-main">' +
+                        '<div class="cx-job-title"><span class="cx-dot cx-dot--' + lower(j.lastStatus || "idle") + '"></span>' +
+                        esc(j.name) + '<span class="cx-kind">' + esc(kindLabel) + '</span></div>' +
+                        '<div class="cx-job-meta">' +
+                        '<span>Schedule: <b>' + esc(j.scheduleSummary || "manual") + '</b></span>' +
+                        '<span>Next: <b>' + esc(nextRun) + '</b></span>' +
+                        '<span>Last: <b>' + esc(j.lastFinishedUtc ? fmtRelative(j.lastFinishedUtc) : "never") + '</b></span>' +
+                        '<span>Avg: <b>' + fmtDuration(j.averageDurationMs) + '</b></span>' +
+                        '<span>Runs: <b>' + (j.successCount || 0) + '&nbsp;ok</b> / <b style="color:var(--cx-danger)">' +
+                        (j.failureCount || 0) + '&nbsp;fail</b></span>' +
+                        '</div></div>' +
+                        '<div class="cx-job-actions">' +
+                        '<label class="cx-switch" title="Enable / disable schedule">' +
+                        '<input type="checkbox" data-enabled="' + esc(j.id) + '" ' + (j.enabled ? "checked" : "") + '>' +
+                        '<span class="cx-switch-track"></span></label>' +
+                        trigBtn +
+                        '</div></div>';
+                }).join("");
+
+                host.querySelectorAll("[data-trigger]").forEach(function (b) {
+                    b.addEventListener("click", function () { triggerJob(b.dataset.trigger, b); });
+                });
+                host.querySelectorAll("[data-enabled]").forEach(function (c) {
+                    c.addEventListener("change", function () { setEnabled(c.dataset.enabled, c.checked); });
+                });
+            }
+
+            function renderFailures() {
+                var fails = state.failures || [];
+                document.getElementById("cx-fail-count").textContent = fails.length;
+                var host = document.getElementById("cx-failures");
+                if (fails.length === 0) {
+                    host.innerHTML = '<div class="cx-empty">No failures captured. Background loops are healthy.</div>';
+                    return;
+                }
+                host.innerHTML = fails.map(function (f) {
+                    return '<div class="cx-fail ' + (f.acknowledged ? "ack" : "") + '">' +
+                        '<div class="cx-fail-top"><span class="cx-fail-type">' + esc(f.exceptionType) + '</span>' +
+                        '<span class="cx-fail-time">' + fmtRelative(f.occurredAtUtc) + '</span></div>' +
+                        '<div class="cx-fail-msg">' + esc(f.message) + '</div>' +
+                        '<div class="cx-fail-meta"><span>Job: <b style="color:var(--cx-text)">' + esc(f.jobName) +
+                        '</b></span><span>Trigger: ' + esc(f.trigger) + '</span></div>' +
+                        '<div class="cx-fail-actions">' +
+                        '<button class="cx-btn cx-btn--sm" data-detail="' + esc(f.id) + '">Stack trace</button>' +
+                        (f.acknowledged ? '' : '<button class="cx-btn cx-btn--sm" data-ack="' + esc(f.id) + '">Acknowledge</button>') +
+                        '</div>' +
+                        '<div class="cx-fail-detail" id="cx-fd-' + esc(f.id) + '">' + esc(f.detail || "No detail captured.") + '</div>' +
+                        '</div>';
+                }).join("");
+
+                host.querySelectorAll("[data-detail]").forEach(function (b) {
+                    b.addEventListener("click", function () {
+                        document.getElementById("cx-fd-" + b.dataset.detail).classList.toggle("open");
+                    });
+                });
+                host.querySelectorAll("[data-ack]").forEach(function (b) {
+                    b.addEventListener("click", function () { ackFailure(b.dataset.ack); });
+                });
+            }
+
+            // ---------- actions ----------
+            function api(path, method) {
+                return fetch("/chronosix/api" + path, { method: method || "GET", headers: { "Accept": "application/json" } });
+            }
+            function triggerJob(id, btn) {
+                if (btn) { btn.disabled = true; }
+                api("/jobs/" + encodeURIComponent(id) + "/trigger", "POST")
+                    .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
+                    .then(function (res) { toast(res.message || "Triggered.", res.success ? "ok" : "bad"); })
+                    .catch(function () { toast("Could not trigger the job.", "bad"); })
+                    .finally(function () { if (btn) { setTimeout(function () { btn.disabled = false; }, 600); } });
+            }
+            function setEnabled(id, value) {
+                api("/jobs/" + encodeURIComponent(id) + "/enabled?value=" + value, "POST")
+                    .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+                    .then(function () { toast("Job " + (value ? "enabled" : "disabled") + ".", "ok"); })
+                    .catch(function () { toast("Could not update the job.", "bad"); });
+            }
+            function ackFailure(id) {
+                api("/failures/" + encodeURIComponent(id) + "/acknowledge", "POST")
+                    .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+                    .then(function () {
+                        var f = state.failures.find(function (x) { return x.id === id; });
+                        if (f) { f.acknowledged = true; renderFailures(); renderStats(); }
+                    })
+                    .catch(function () { toast("Could not acknowledge.", "bad"); });
+            }
+            document.getElementById("cx-fail-clear").addEventListener("click", function () {
+                api("/failures/clear", "POST")
+                    .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+                    .then(function () { state.failures = []; renderFailures(); renderStats(); toast("Failures cleared.", "ok"); })
+                    .catch(function () { toast("Could not clear failures.", "bad"); });
+            });
+            document.getElementById("cx-refresh").addEventListener("click", refreshSnapshot);
+
+            // ---------- drawer ----------
+            function openExecution(execId) {
+                var exec = state.executions.find(function (e) { return e.id === execId; });
+                if (!exec) return;
+                document.getElementById("cx-drawer-title").textContent = exec.jobName;
+                var log = (exec.log || []).map(esc).join("\n") || "No log lines captured.";
+                document.getElementById("cx-drawer-body").innerHTML =
+                    '<span class="cx-pill cx-pill--' + lower(exec.status) + '">' + esc(exec.status) + '</span>' +
+                    '<dl class="cx-kv" style="margin-top:14px">' +
+                    '<dt>Trigger</dt><dd>' + esc(exec.trigger) + '</dd>' +
+                    '<dt>Started</dt><dd>' + esc(new Date(exec.startedAtUtc).toLocaleString()) + '</dd>' +
+                    '<dt>Finished</dt><dd>' + esc(exec.finishedAtUtc ? new Date(exec.finishedAtUtc).toLocaleString() : "running…") + '</dd>' +
+                    '<dt>Duration</dt><dd>' + fmtDuration(exec.durationMs) + '</dd>' +
+                    '<dt>Kind</dt><dd>' + esc(exec.kind) + '</dd>' +
+                    (exec.errorMessage ? '<dt>Error</dt><dd style="color:var(--cx-danger)">' + esc(exec.errorMessage) + '</dd>' : '') +
+                    '</dl>' +
+                    '<div class="cx-log">' + log + '</div>';
+                document.getElementById("cx-drawer").classList.add("open");
+                document.getElementById("cx-scrim").classList.add("open");
+            }
+            function closeDrawer() {
+                document.getElementById("cx-drawer").classList.remove("open");
+                document.getElementById("cx-scrim").classList.remove("open");
+            }
+            document.getElementById("cx-drawer-close").addEventListener("click", closeDrawer);
+            document.getElementById("cx-scrim").addEventListener("click", closeDrawer);
+            document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeDrawer(); });
+
+            // ---------- toast ----------
+            function toast(msg, kind) {
+                var host = document.getElementById("cx-toast-host");
+                var el = document.createElement("div");
+                el.className = "cx-toast " + (kind || "");
+                el.textContent = msg;
+                host.appendChild(el);
+                setTimeout(function () {
+                    el.style.transition = "opacity .25s ease";
+                    el.style.opacity = "0";
+                    setTimeout(function () { el.remove(); }, 250);
+                }, 3400);
+            }
+
+            // ---------- connection ----------
+            function setConn(cls, text) {
+                var el = document.getElementById("cx-conn");
+                el.className = "cx-conn " + cls;
+                document.getElementById("cx-conn-text").textContent = text;
+            }
+            function refreshSnapshot() {
+                api("/snapshot").then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+                    .then(function (snap) { ingestSnapshot(snap); renderAll(); })
+                    .catch(function () { });
+            }
+
+            var pollTimer = null;
+            function startPolling() {
+                if (pollTimer) return;
+                setConn("poll", "polling");
+                pollTimer = setInterval(refreshSnapshot, 3000);
+                refreshSnapshot();
+            }
+            function stopPolling() {
+                if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+            }
+
+            function startSignalR() {
+                if (window.__cxSignalRMissing || typeof signalR === "undefined") {
+                    startPolling();
+                    return;
+                }
+                var conn = new signalR.HubConnectionBuilder()
+                    .withUrl("/chronosix/hub")
+                    .withAutomaticReconnect([0, 1000, 3000, 6000, 10000])
+                    .configureLogging(signalR.LogLevel.Error)
+                    .build();
+
+                conn.on("snapshot", function (snap) { ingestSnapshot(snap); renderAll(); });
+                conn.on("jobUpdated", function (job) { state.jobs[job.id] = job; renderJobs(); renderTimeline(); });
+                conn.on("executionStarted", function (exec) { upsertExecution(exec); renderTimeline(); });
+                conn.on("executionFinished", function (exec) {
+                    upsertExecution(exec);
+                    var job = state.jobs[exec.jobId];
+                    renderTimeline(); renderJobs(); renderStats();
+                });
+                conn.on("failureCaptured", function (f) {
+                    state.failures.unshift(f); renderFailures(); renderStats();
+                    toast("Failure captured: " + f.exceptionType, "bad");
+                });
+
+                conn.onreconnecting(function () { setConn("poll", "reconnecting"); });
+                conn.onreconnected(function () { setConn("live", "live"); refreshSnapshot(); });
+                conn.onclose(function () { setConn("down", "offline"); startPolling(); });
+
+                conn.start()
+                    .then(function () { stopPolling(); setConn("live", "live"); })
+                    .catch(function () { startPolling(); });
+            }
+
+            // ---------- ticking ----------
+            function tick() {
+                document.getElementById("cx-servertime").textContent = new Date().toLocaleTimeString();
+                renderTimeline();
+            }
+            setInterval(tick, 1000);
+
+            // ---------- go ----------
+            renderAll();
+            startSignalR();
+        })();
+    </script>
+</body>
+</html>
