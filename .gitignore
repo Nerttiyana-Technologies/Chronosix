@@ -427,3 +427,21 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# Design and implementation planning documents — kept local, not published to GitHub.
+docs/
+
+# macOS / editor cruft
+.DS_Store
+.idea/
+
+# BenchmarkDotNet run artifacts
+BenchmarkDotNet.Artifacts/
+
+# Presentations
+presentations/
+
+# local runtime data (SQLite database created by the in-process server)
+*.db
+*.db-shm
+*.db-wal

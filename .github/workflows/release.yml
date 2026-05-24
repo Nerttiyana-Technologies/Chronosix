@@ -39,6 +39,15 @@ jobs:
           dotnet pack adapters/Chronosix.Quartz/Chronosix.Quartz.csproj --configuration Release --no-build -p:Version=${{ steps.version.outputs.value }} --output ./artifacts
           dotnet pack adapters/Chronosix.Hangfire/Chronosix.Hangfire.csproj --configuration Release --no-build -p:Version=${{ steps.version.outputs.value }} --output ./artifacts
 
+      - name: Verify the NuGet API key is configured
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          if [ -z "$NUGET_API_KEY" ]; then
+            echo "::error::Repository secret NUGET_API_KEY is not set. Create a key at https://www.nuget.org/account/apikeys and add it under Settings -> Secrets and variables -> Actions."
+            exit 1
+          fi
+
       - name: Publish to NuGet.org
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
