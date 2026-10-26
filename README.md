@@ -21,7 +21,7 @@ Most enterprise .NET apps schedule background work with Quartz.NET, Hangfire, or
 `IHostedService` / `BackgroundService` loops driven by cron expressions. Checking whether
 those jobs are actually running correctly usually means **staring at rolling console
 logs** or **writing throwaway API endpoints** just to trigger a job for testing.
-Hangfire ships a dashboard, but it requires a database back-end to function.
+The scheduler dashboards that do exist usually need a database back-end to function.
 
 Chronosix removes that friction. It keeps a live, in-memory picture of every job and
 serves it from your own process.
